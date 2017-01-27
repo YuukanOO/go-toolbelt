@@ -12,7 +12,7 @@ This is my personal toolbelt for the golang awesome programming language. It is 
 
 A `DomainError` struct is defined and encapsulates a Domain error. A domain error is an expected error in case some input were wrong and will eventually be displayed to the user.
 
-```
+```go
 err := errors.NewDomainError("AConstantCode", "A friendly message for the developper", errors.New("Any number of errors"))
 ```
 
@@ -20,7 +20,7 @@ err := errors.NewDomainError("AConstantCode", "A friendly message for the develo
 
 This is a very simple fluent like API that uses [the go-playground validator](https://github.com/go-playground/validator) under the hood.
 
-```
+```go
 err := validation.Validate("User").
   Field("username", "mytoolongusername", "required,max=10,min=1").
   Field("password", "aS3cretP@ssw0rd", "required,min=10").
