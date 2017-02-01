@@ -13,7 +13,7 @@ This is my personal toolbelt for the golang awesome programming language. It is 
 A `DomainError` struct is defined and encapsulates a Domain error. A domain error is an expected error in case some input were wrong and will eventually be displayed to the user.
 
 ```go
-err := errors.NewDomainError("AConstantCode", "A friendly message for the developper", errors.New("Any number of errors"))
+err := errors.NewDomainError("AConstantCode", "A friendly message for the developper", errors.New("Any number of inner errors"))
 ```
 
 ### Validation
@@ -34,3 +34,52 @@ fieldErr := domErr.Errors[0].(*validation.FieldError)
 ```
 
 Don't hesitate to check the tests for more examples.
+
+### Event sourcing
+
+I know I shouldn't have to expose `Transition` and other methods but I had to for this to work.
+
+```go
+type User struct {
+  eventsourcing.EventSource
+  ID int
+}
+
+type UserCreated struct { ID int }
+
+func NewUser() *User {
+  usr := &User{}
+  eventsourcing.TrackChange(usr, UserCreated{ ID: 1 })
+  return usr
+}
+
+func NewUserFromStore(events []Event) *User {
+  usr := &User{}
+  eventsourcing.LoadFromEvents(usr, events)
+  return usr
+}
+
+func (u *User) Transition(evt eventsourcing.Event) {
+  switch e := evt.(type) {
+    case UserCreated:
+      u.ID = e.ID
+      break
+  }
+}
+
+u := NewUser()
+
+// len(u.Changes) == 1
+// u.Changes[0] == UserCreated{ 1 }
+// u.ID == 1
+
+evts := []Event{
+  UserCreated{ ID: 6 }
+}
+
+us := NewUserFromStore(evts)
+
+// len(u.Changes) == 1
+// u.Changes[0] == UserCreated{ 6 }
+// u.ID == 6
+```
