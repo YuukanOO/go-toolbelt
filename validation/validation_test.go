@@ -3,6 +3,8 @@ package validation
 import (
 	"testing"
 
+	"strings"
+
 	"github.com/YuukanOO/go-toolbelt/errors"
 )
 
@@ -35,6 +37,10 @@ func TestFluentValidationFailure(t *testing.T) {
 		t.Error("Inner error should be of type FieldError")
 	}
 
+	if !strings.Contains(fieldErr.Error(), "password") {
+		t.Error("It should complains about the password field")
+	}
+
 	if fieldErr.Resource != "User" ||
 		fieldErr.Field != "password" ||
 		fieldErr.Code != "required" {
@@ -60,6 +66,20 @@ func TestFluentValidationManyTagsFailure(t *testing.T) {
 
 	if fieldErr.Field != "username" || fieldErr.Code != "max" {
 		t.Error("It should fail on the max tag")
+	}
+}
+
+func TestFluentValidationWithValue(t *testing.T) {
+	err := Validate("User").
+		FieldWithValue("password", "bobpwd", "mypwd", "eqfield").Errors()
+
+	if err == nil {
+		t.Error("Validation should failed")
+	}
+
+	if err = Validate("User").
+		FieldWithValue("password", "bobpwd", "bobpwd", "eqfield").Errors(); err != nil {
+		t.Error("Validation should not failed")
 	}
 }
 

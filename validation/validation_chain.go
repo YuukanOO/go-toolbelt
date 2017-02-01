@@ -1,3 +1,5 @@
+// Package validation exposes members to ease the validation process. It is based
+// upon the excellent go-playground/valdator.v9 package.
 package validation
 
 import (
@@ -51,7 +53,8 @@ func (chain *Chain) Field(name string, value interface{}, tag string) *Chain {
 	return chain.FieldWithValue(name, value, nil, tag)
 }
 
-// Errors evaluates the entire chain and returns any errors as a DomainError.
+// Errors evaluates the entire chain and returns any errors as a DomainError containing
+// FieldError as inner errors.
 func (chain *Chain) Errors() error {
 	var fieldErrs []error
 

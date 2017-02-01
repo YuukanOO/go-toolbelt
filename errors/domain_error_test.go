@@ -2,6 +2,8 @@ package errors
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -10,10 +12,10 @@ const (
 	TestErrDesc = "An error has occured"
 )
 
-var TestInnerErr = errors.New("An inner error")
+var ErrTest = errors.New("An inner error")
 
 func TestDomainError(t *testing.T) {
-	err := NewDomainError(TestErrCode, TestErrDesc, TestInnerErr)
+	err := NewDomainError(TestErrCode, TestErrDesc, ErrTest)
 
 	domErr := err.(*DomainError)
 
@@ -23,5 +25,15 @@ func TestDomainError(t *testing.T) {
 
 	if domErr.Code != TestErrCode || domErr.Message != TestErrDesc {
 		t.Error("Code and message should match those provided")
+	}
+
+	if len(domErr.Errors) == 0 {
+		t.Error("It should have one inner error")
+	}
+
+	errStr := domErr.Error()
+
+	if !strings.HasPrefix(errStr, fmt.Sprintf("%s - %s", TestErrCode, TestErrDesc)) {
+		t.Error("Wrong error message")
 	}
 }

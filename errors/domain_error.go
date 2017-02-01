@@ -1,3 +1,4 @@
+// Package errors exposes utils to deal with domain errors.
 package errors
 
 import "fmt"
@@ -19,7 +20,7 @@ func (err DomainError) Error() string {
 	return msg
 }
 
-// NewDomainError instantiates a new domain error.
+// NewDomainError instantiates a new domain error with given inner errors.
 func NewDomainError(code string, message string, errors ...error) error {
 	return &DomainError{
 		Code:    code,
