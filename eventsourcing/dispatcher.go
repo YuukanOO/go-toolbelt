@@ -13,3 +13,12 @@ type Dispatcher struct {
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{}
 }
+
+// AddHandlers adds one or more handlers to this dispatcher's instance.
+func (d *Dispatcher) AddHandlers(handlers ...EventHandler) {
+	d.handlers = append(d.handlers, handlers...)
+}
+
+func (d *Dispatcher) Dispatch(emitters ...EventEmitter) {
+
+}
