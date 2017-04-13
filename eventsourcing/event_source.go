@@ -58,7 +58,7 @@ func (src *EventSource) AddChange(event Event) {
 // PopChange retrieve the first pending change and removes it from the inner queue.
 func (src *EventSource) PopChange() Event {
 	if len(src.Changes) > 0 {
-		head, tail := src.Changes[:1][0], src.Changes[1:]
+		head, tail := src.Changes[0], src.Changes[1:]
 		src.Changes = tail
 		return head
 	}

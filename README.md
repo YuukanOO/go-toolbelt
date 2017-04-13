@@ -79,7 +79,28 @@ evts := []Event{
 
 us := NewUserFromStore(evts)
 
-// len(u.Changes) == 1
-// u.Changes[0] == UserCreated{ 6 }
+// len(us.Changes) == 0 since it has been reconstructed from the store
 // u.ID == 6
+```
+
+This toolbelt also implements an event dispatcher:
+
+```go
+// Using same user has above
+
+dispatcher := eventsourcing.NewDispatcher()
+
+func handler(evt Event) {
+  fmt.Println(reflect.TypeOf(evt).Name())
+}
+
+// Add one or more handlers for this dispatcher
+dispatcher.AddHandlers(handler)
+
+// len(dispatcher.handlers) == 1
+
+// Dispatch one or more event emitters
+dispatcher.Dispatch(u) // u being a NewUser()
+
+// handler will be called so => "UserCreated" will be printed out
 ```

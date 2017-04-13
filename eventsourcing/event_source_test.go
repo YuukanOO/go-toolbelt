@@ -50,6 +50,10 @@ func TestEventSource(t *testing.T) {
 
 	LoadFromEvents(newObj, eventsFromStore)
 
+	if len(newObj.Changes) != 0 {
+		t.Error("Inner changes should be empty since reconstructed from the store")
+	}
+
 	if newObj.ID != 6 || newObj.processedEvents != 2 {
 		t.Error("Processed events should have been set and ID should be set")
 	}
@@ -65,16 +69,14 @@ func TestPopChange(t *testing.T) {
 	}
 
 	evt := obj.PopChange()
-	evtType := reflect.TypeOf(evt)
 
-	if evtType.Name() != "CreatedEvent" {
+	if reflect.TypeOf(evt).Name() != "CreatedEvent" {
 		t.Error("First event should be of type CreatedEvent")
 	}
 
 	evt = obj.PopChange()
-	evtType = reflect.TypeOf(evt)
 
-	if evtType.Name() != "AnotherEvent" {
+	if reflect.TypeOf(evt).Name() != "AnotherEvent" {
 		t.Error("Second event should be of type AnotherEvent")
 	}
 

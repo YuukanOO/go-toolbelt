@@ -19,6 +19,28 @@ func (d *Dispatcher) AddHandlers(handlers ...EventHandler) {
 	d.handlers = append(d.handlers, handlers...)
 }
 
+// Dispatch dispatch one or more emitters changes to all registered handlers.
+// It will pop changes and remove them from the emitter.
 func (d *Dispatcher) Dispatch(emitters ...EventEmitter) {
+	for _, emi := range emitters {
+		for {
+			evt := emi.PopChange()
 
+			if evt == nil {
+				break
+			}
+
+			d.DispatchEvents(evt)
+		}
+	}
+}
+
+// DispatchEvents dispatch one or more events to all registered handlers. You should not
+// have to call it directly but just in case, its exposed.
+func (d *Dispatcher) DispatchEvents(events ...Event) {
+	for _, e := range events {
+		for _, h := range d.handlers {
+			h(e)
+		}
+	}
 }
