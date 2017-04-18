@@ -7,7 +7,7 @@ import "fmt"
 type DomainError struct {
 	Code    string  `json:"code"`
 	Message string  `json:"message"`
-	Errors  []error `json:"errors"`
+	Errors  []error `json:"errors,omitempty"`
 }
 
 func (err DomainError) Error() string {
