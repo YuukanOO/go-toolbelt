@@ -24,8 +24,8 @@ type EventEmitter interface {
 
 // EventSource is a basic implementation of an event emitter.
 type EventSource struct {
-	Changes         []Event
-	ExpectedVersion int
+	Changes         []Event `json:"-" gorm:"-"`
+	ExpectedVersion int     `json:"-" gorm:"-"`
 }
 
 // TrackChange process an event into the given emitter to change its state
