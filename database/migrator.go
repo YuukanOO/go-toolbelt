@@ -66,16 +66,43 @@ func (s byName) Less(i, j int) bool {
 	return s[i].Name() < s[j].Name()
 }
 
+// EventHandler represents a delegate for event handling in the migrator.
+type EventHandler func(interface{})
+
+// MigrationApplied is thrown when a database migration has been applied.
+type MigrationApplied struct {
+	Name    string
+	Version int
+}
+
+// MigrationRemoved is thrown when a adatabase migration has been rolled back.
+type MigrationRemoved struct {
+	Name string
+}
+
 // Migrator offers a configurable interface for your migration needs.
 type Migrator struct {
 	Adapter    MigratorAdapter
-	Migrations []Migration
+	migrations []Migration
+	handlers   []EventHandler
 }
 
 // Register given migrations into this migrator. Order does not matter since they will be
 // sorted by name when applying migrations.
 func (m *Migrator) Register(migrations ...Migration) {
-	m.Migrations = append(m.Migrations, migrations...)
+	m.migrations = append(m.migrations, migrations...)
+}
+
+// Use given event handlers to listen for migrator's event such as migration applied
+// or rolled back.
+func (m *Migrator) Use(handlers ...EventHandler) {
+	m.handlers = append(m.handlers, handlers...)
+}
+
+func (m *Migrator) dispatch(event interface{}) {
+	for _, v := range m.handlers {
+		v(event)
+	}
 }
 
 // Migrate the database to the latest version applying needed migrations and returns the
@@ -95,9 +122,9 @@ func (m *Migrator) Migrate() (int, error) {
 
 	m.Adapter.Begin()
 
-	sort.Sort(byName(m.Migrations))
+	sort.Sort(byName(m.migrations))
 
-	for _, mig := range m.Migrations {
+	for _, mig := range m.migrations {
 		name := mig.Name()
 		applied := false
 
@@ -114,6 +141,11 @@ func (m *Migrator) Migrate() (int, error) {
 			if err := m.Adapter.ExecUp(mig); err != nil {
 				return -1, err
 			}
+
+			m.dispatch(MigrationApplied{
+				Name:    name,
+				Version: version,
+			})
 
 			m.Adapter.MigrationInserted(name, version)
 		}
@@ -133,7 +165,7 @@ func (m *Migrator) RollBackToVersion(version int) error {
 	// Constructs a map to ease the process of retrieving the migration
 	migrationsByName := map[string]Migration{}
 
-	for _, rm := range m.Migrations {
+	for _, rm := range m.migrations {
 		migrationsByName[rm.Name()] = rm
 	}
 
@@ -149,6 +181,10 @@ func (m *Migrator) RollBackToVersion(version int) error {
 			if err := m.Adapter.ExecDown(curMigration); err != nil {
 				return err
 			}
+
+			m.dispatch(MigrationRemoved{
+				Name: v.Name,
+			})
 
 			m.Adapter.MigrationRemoved(v.Name)
 		}

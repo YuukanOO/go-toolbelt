@@ -42,11 +42,13 @@ CREATE TABLE %s (
 	CONSTRAINT migrations_pkey PRIMARY KEY (name)
 );
 `, s.tableName))
+
+	// Does not fail if relation already exists
 	return nil
 }
 
 func (s *SQLXAdapter) DropMigrationsTable() error {
-	s.tx.Exec(fmt.Sprintf("DROP TABLE %s CASCADE;", s.tableName))
+	s.tx.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", s.tableName))
 	return nil
 }
 
@@ -69,5 +71,8 @@ func (s *SQLXAdapter) MigrationRemoved(name string) {
 }
 
 func (s *SQLXAdapter) SelectMigrations(migrations *[]AppliedMigration) error {
-	return s.db.Select(migrations, fmt.Sprintf("SELECT * FROM %s ORDER BY version DESC", s.tableName))
+	s.db.Select(migrations, fmt.Sprintf("SELECT * FROM %s ORDER BY version DESC", s.tableName))
+
+	// Does not fail if table does not exists
+	return nil
 }
