@@ -61,11 +61,11 @@ func (s *SQLXAdapter) ExecUp(m Migration) error {
 }
 
 func (s *SQLXAdapter) MigrationInserted(name string, version int) {
-	s.tx.Exec(fmt.Sprintf("INSERT INTO %s (name, version) VALUES ($1, $2)", s.tableName), name, version)
+	s.tx.Exec(s.db.Rebind(fmt.Sprintf("INSERT INTO %s (name, version) VALUES (?, ?)", s.tableName)), name, version)
 }
 
 func (s *SQLXAdapter) MigrationRemoved(name string) {
-	s.tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE name = $1", s.tableName), name)
+	s.tx.Exec(s.db.Rebind(fmt.Sprintf("DELETE FROM %s WHERE name = ?", s.tableName)), name)
 }
 
 func (s *SQLXAdapter) SelectMigrations(migrations *[]AppliedMigration) error {
