@@ -37,7 +37,7 @@ func (s *SQLXAdapter) CreateMigrationsTable() error {
 	s.db.Exec(fmt.Sprintf(`
 CREATE TABLE %s (
 	name VARCHAR(255),
-	applied_at TIMESTAMP DEFAULT NOW(),
+	appliedat TIMESTAMP DEFAULT NOW(),
 	version INT,
 	CONSTRAINT migrations_pkey PRIMARY KEY (name)
 );
@@ -46,7 +46,7 @@ CREATE TABLE %s (
 }
 
 func (s *SQLXAdapter) DropMigrationsTable() error {
-	s.db.Exec(fmt.Sprintf("DROP TABLE %s CASCADE;", s.tableName))
+	s.tx.Exec(fmt.Sprintf("DROP TABLE %s CASCADE;", s.tableName))
 	return nil
 }
 
@@ -69,5 +69,5 @@ func (s *SQLXAdapter) MigrationRemoved(name string) {
 }
 
 func (s *SQLXAdapter) SelectMigrations(migrations *[]AppliedMigration) error {
-	return s.db.Get(migrations, fmt.Sprintf("SELECT * FROM %s ORDER BY version DESC", s.tableName))
+	return s.db.Select(migrations, fmt.Sprintf("SELECT * FROM %s ORDER BY version DESC", s.tableName))
 }
