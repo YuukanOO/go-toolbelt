@@ -14,12 +14,11 @@ type MigratorAdapter interface {
 	CreateMigrationsTable() error
 	DropMigrationsTable() error
 	SelectMigrations(migrations *[]AppliedMigration) error
-	MigrationInserted(name string, version int)
-	MigrationRemoved(name string)
+	MigrationInserted(name string, version int) error
+	MigrationRemoved(name string) error
 	Begin()
 	Commit() error
-	ExecUp(migration Migration) error
-	ExecDown(migration Migration) error
+	Exec(sql string) error
 }
 
 // AppliedMigration represents a migration already applied to the database. Name is
@@ -138,7 +137,7 @@ func (m *Migrator) Migrate() (int, error) {
 		if !applied {
 			version++
 
-			if err := m.Adapter.ExecUp(mig); err != nil {
+			if err := m.Adapter.Exec(mig.Up()); err != nil {
 				return -1, err
 			}
 
@@ -147,7 +146,9 @@ func (m *Migrator) Migrate() (int, error) {
 				Version: version,
 			})
 
-			m.Adapter.MigrationInserted(name, version)
+			if err := m.Adapter.MigrationInserted(name, version); err != nil {
+				return -1, err
+			}
 		}
 	}
 
@@ -178,7 +179,7 @@ func (m *Migrator) RollBackToVersion(version int) error {
 			curMigration := migrationsByName[v.Name]
 
 			// Rollback it
-			if err := m.Adapter.ExecDown(curMigration); err != nil {
+			if err := m.Adapter.Exec(curMigration.Down()); err != nil {
 				return err
 			}
 
@@ -186,7 +187,9 @@ func (m *Migrator) RollBackToVersion(version int) error {
 				Name: v.Name,
 			})
 
-			m.Adapter.MigrationRemoved(v.Name)
+			if err := m.Adapter.MigrationRemoved(v.Name); err != nil {
+				return err
+			}
 		}
 	}
 
